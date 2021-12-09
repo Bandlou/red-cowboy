@@ -13,5 +13,7 @@ UCLASS()
 class REDCOWBOY_API ARedCowboyGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
+public:
+	ARedCowboyGameModeBase();
 };
