@@ -2,9 +2,9 @@
 - Game engine: __Unreal (v5.0)__
 - Contribution: __Louis BANDELIER__
 
-A 5-day project to try to implement some basic RDR2 gameplay features.
+A 4-day project to try to implement some basic RDR2 gameplay features.
 
-## Day 1
+## [2021/12/09] Day 1
 - Setup blank project
 - Recreated the third person template with an interest on the following features:
   - Character class, controller, 3D model, materials, animations, animation tree
@@ -13,7 +13,7 @@ A 5-day project to try to implement some basic RDR2 gameplay features.
 - Add a navmesh to the map and a simple roam behavior for the AI controlled NPCs
 - Add a pawn sensing component to the NPC character
 
-## Day 2
+## [2021/12/10] Day 2
 - Add the dectection of actors around player
 - Add an NPC lock system:
   - Detection:
@@ -26,7 +26,10 @@ A 5-day project to try to implement some basic RDR2 gameplay features.
     - Lock the NPC
     - Update the GUI to signal a NPC is locked and display available interactions (WIP: day 3)
 
-## Day 3: Planning to...
+## [2021/12/11] Day 3: Planning to...
 - Add a NPC interaction system:
     - If a NPC is locked
     - (WIP)
+
+## [2021/12/13] Day 4
+- WIP
