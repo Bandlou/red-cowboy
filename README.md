@@ -2,6 +2,28 @@
 - Game engine: __Unreal (v5.0)__
 - Contribution: __Louis BANDELIER__
 
-[WIP] A 5-day project to try to implement some RDR2 gameplay features.
+A 5-day project to try to implement some RDR2 gameplay features.
 
-Starting today...
+## Day 1
+- Setup blank project
+- Recreated the third person template with an interest on the following features:
+  - Character class, controller, 3D model, materials, animations, animation tree
+  - Game mode default classes
+- Add an NPC character with AI controller supported by a behavior tree, a blackboard and tasks
+- Add a navmesh to the map and a simple roam behavior for the AI controlled NPCs
+- Add a pawn sensing component to the NPC character
+
+## Day 2
+- Add the dectection of actors around player
+- Add an NPC lock system:
+  - Detection:
+    - Select valid NPCs around the player (valid angle & distance)
+    - Give the selected NPCs a score based on angle & distance
+    - Select the NPC with the highest score
+    - Update the GUI to signal a NPC is lockable
+  - Lock:
+    - If not already locked and if there is a lockable NPC
+    - Lock the NPC and update the GUI to signal a NPC is locked and display available interactions
+  - Interact:
+    - If a NPC is locked
+    - (WIP)
