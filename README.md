@@ -2,7 +2,7 @@
 - Game engine: __Unreal (v5.0)__
 - Contribution: __Louis BANDELIER__
 
-A 5-day project to try to implement some RDR2 gameplay features.
+A 5-day project to try to implement some basic RDR2 gameplay features.
 
 ## Day 1
 - Setup blank project
