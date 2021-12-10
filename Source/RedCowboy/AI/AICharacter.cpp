@@ -17,9 +17,16 @@ AAICharacter::AAICharacter()
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
+	// set interaction variables
+	CharacterName = "Stranger";
+
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
+
+	// set movement speeds
+	MaxRunningSpeed = 375;
+	MaxWalkingSpeed = 150;
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
@@ -31,12 +38,13 @@ AAICharacter::AAICharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
+	GetCharacterMovement()->MaxWalkSpeed = MaxWalkingSpeed;
 
-	// Create a pawn sensing
-	PawnSensing = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
-	PawnSensing->SetPeripheralVisionAngle(40);
-	PawnSensing->SetSensingUpdatesEnabled(true);
-	PawnSensing->bOnlySensePlayers = false; // we want it to react to other NPCs too
+	// Create a pawn sensing => using AI perception in controller BP instead
+	// PawnSensing = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
+	// PawnSensing->SetPeripheralVisionAngle(40);
+	// PawnSensing->SetSensingUpdatesEnabled(true);
+	// PawnSensing->bOnlySensePlayers = false; // we want it to react to other NPCs too
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -48,6 +56,16 @@ void AAICharacter::BeginPlay()
 
 	// Pawn sensing bindings (done within the controller with a BT instead)
 	// PawnSensing->OnSeePawn.AddDynamic(this, &AAICharacter::OnSeePawn);
+}
+
+void AAICharacter::Run()
+{
+	GetCharacterMovement()->MaxWalkSpeed = MaxRunningSpeed;
+}
+
+void AAICharacter::StopRunning()
+{
+	GetCharacterMovement()->MaxWalkSpeed = MaxWalkingSpeed;
 }
 
 void AAICharacter::MoveForward(float Value)
@@ -91,15 +109,15 @@ void AAICharacter::LookUpAtRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
-void AAICharacter::OnSeePawn(APawn* Pawn)
-{
-	APlayerCharacter* player = dynamic_cast<APlayerCharacter*>(Pawn);
-	if (player != nullptr)
-	{
-		HasTarget = true;
-		TargetPosition = player->GetActorLocation();
-	}
-}
+// void AAICharacter::OnSeePawn(APawn* Pawn)
+// {
+// 	APlayerCharacter* player = dynamic_cast<APlayerCharacter*>(Pawn);
+// 	if (player != nullptr)
+// 	{
+// 		HasTarget = true;
+// 		TargetPosition = player->GetActorLocation();
+// 	}
+// }
 
 
 // Called every frame
