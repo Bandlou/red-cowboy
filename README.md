@@ -33,9 +33,10 @@ A 4-day project to try to implement some basic RDR2 gameplay features.
   - Give locked character more distance before being unlocked
   - Increase maximal angle for valid lock
   - Update score function
+  - Make player face its locked target
+- Update AI roam controller:
+  - Transition from Blueprint to C++ class
+
+## [2021/12/13] Day 4: Planning to...
 - Add a NPC interaction system:
     - If a NPC is locked
-    - (WIP)
-
-## [2021/12/13] Day 4
-- WIP
