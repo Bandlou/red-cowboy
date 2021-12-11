@@ -3,3 +3,51 @@
 
 #include "NPCInteractionWidget.h"
 
+#include "Components/Image.h"
+#include "Components/TextBlock.h"
+#include "Components/VerticalBox.h"
+
+void UNPCInteractionWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	bIsInputGamepad = true;
+
+	BadLabel->SetText(FText::FromString("Antagonize"));
+	FriendlyLabel->SetText(FText::FromString("Greet"));
+	RobLabel->SetText(FText::FromString("Rob"));
+	AimLabel->SetText(FText::FromString("Aim Weapon"));
+}
+
+void UNPCInteractionWidget::SetInputType(bool bIsGamepad)
+{
+	if (bIsInputGamepad == bIsGamepad)
+		return;
+
+	bIsInputGamepad = bIsGamepad;
+	LockSpritePC->SetVisibility(bIsInputGamepad ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+	LockSpritePS4->SetVisibility(bIsInputGamepad ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	BadSpritePC->SetVisibility(bIsInputGamepad ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+	BadSpritePS4->SetVisibility(bIsInputGamepad ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	FriendlySpritePC->SetVisibility(bIsInputGamepad ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+	FriendlySpritePS4->SetVisibility(bIsInputGamepad ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	RobSpritePC->SetVisibility(bIsInputGamepad ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+	RobSpritePS4->SetVisibility(bIsInputGamepad ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	AimSpritePC->SetVisibility(bIsInputGamepad ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+	AimSpritePS4->SetVisibility(bIsInputGamepad ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+}
+
+void UNPCInteractionWidget::SetCanLock(bool bCanLock)
+{
+	InteractionMenu->SetVisibility(bCanLock ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+}
+
+void UNPCInteractionWidget::SetIsLocked(bool bIsLocked)
+{
+	ActionMenu->SetVisibility(bIsLocked ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+}
+
+void UNPCInteractionWidget::SetName(FString Name)
+{
+	LockLabel->SetText(FText::FromString(Name));
+}

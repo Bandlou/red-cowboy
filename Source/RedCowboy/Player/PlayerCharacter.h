@@ -33,23 +33,23 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
 	class AAICharacter* LockableAICharacter;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
 	bool bIsAICharacterLocked;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
 	float MaxInteractionAngle;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
 	float MaxInteractionDistance;
 
 	/** Exposes NPCInteraction BP class */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	TSubclassOf<UUserWidget> NPCInteractionBP;
+	TSubclassOf<class UUserWidget> NPCInteractionClass;
 
-	// UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=Interaction)
-	// class UNPCInteractionWidget* NPCInteractionWidget;
-	
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=UI)
+	class UNPCInteractionWidget* NPCInteractionWidget;
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Movement)
 	float MaxRunningSpeed;
@@ -67,16 +67,15 @@ public:
 	float BaseLookUpRate;
 
 protected:
-
 	/** Called at start	*/
 	virtual void BeginPlay() override;
 
 	/** Called when lock key is pressed */
-	void LockCharacter();
+	void LockCharacter(FKey Key);
 
 	/** Called when lock key is released and when lockable character changes */
 	void UnlockCharacter();
-	
+
 	/** Called when Run is pressed */
 	void Run();
 
@@ -103,8 +102,14 @@ protected:
 
 	/**
 	 * Called via tick to handle interaction
+	 * #param bDebug	Specify whether to make debugging draws and logs
 	 */
 	void HandleInteraction(bool bDebug);
+
+	/**
+	 * Called via input actions to enable dynamic GUI switch
+	 */
+	void CheckInputType(FKey Key);
 
 public:
 	// Called every frame
@@ -115,7 +120,11 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	/** Returns AIPerceptionStimuliSource subobject **/
-	FORCEINLINE class UAIPerceptionStimuliSourceComponent* GetAIPerceptionStimuliSource() const	{ return AIPerceptionStimuliSource; }
+	FORCEINLINE class UAIPerceptionStimuliSourceComponent* GetAIPerceptionStimuliSource() const
+	{
+		return AIPerceptionStimuliSource;
+	}
+
 	/** Returns DetectionSphere subobject **/
 	FORCEINLINE class USphereComponent* GetDetectionSphere() const { return DetectionSphere; }
 

@@ -71,6 +71,12 @@ APlayerCharacter::APlayerCharacter()
 	DetectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DetectionSphere"));
 	DetectionSphere->InitSphereRadius(1000);
 
+	// Find the Widget and assigned to NPCInteractionBPClass
+	static ConstructorHelpers::FClassFinder<UUserWidget> NPCInteractionWbpClass(
+		TEXT("/Game/RedCowboy/Blueprints/GUI/NPCInteractionWBP"));
+	if (NPCInteractionWbpClass.Class != nullptr)
+		NPCInteractionClass = NPCInteractionWbpClass.Class;
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -80,20 +86,34 @@ void APlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	// Create GUI widgets and add them to viewport
-	UE_LOG(LogTemp, Warning, TEXT("IsValid=%d"), IsValid(NPCInteractionBP));
-	// UUserWidget* NPCInteractionWidget = NewObject<UUserWidget>(NPCInteractionBP);
-	// if (NPCInteractionWidget != nullptr)
-	// 	NPCInteractionWidget->AddToViewport();
+	if (IsValid(NPCInteractionClass))
+	{
+		NPCInteractionWidget = CreateWidget<UNPCInteractionWidget>(GetWorld(), NPCInteractionClass);
 
-	// UserInterface = CreateWidget<UNPCIn>(this, UMyUserWidget::StaticClass());
-	// UserInterface->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+		if (NPCInteractionWidget != nullptr)
+		{
+			NPCInteractionWidget->AddToViewport();
+			NPCInteractionWidget->SetInputType(false);
+			NPCInteractionWidget->SetCanLock(false);
+			NPCInteractionWidget->SetIsLocked(bIsAICharacterLocked);
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Unable to add NPCInteractionWidget to viewport!"));
+	}
 }
 
-void APlayerCharacter::LockCharacter()
+void APlayerCharacter::LockCharacter(FKey Key)
 {
+	CheckInputType(Key);
 	if (LockableAICharacter != nullptr)
 	{
 		bIsAICharacterLocked = true;
+
+		// Update NPCInteractionWidget (GUI)
+		if (NPCInteractionWidget != nullptr)
+			NPCInteractionWidget->SetIsLocked(true);
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Unable to update NPCInteractionWidget!"));
 	}
 }
 
@@ -102,6 +122,12 @@ void APlayerCharacter::UnlockCharacter()
 	if (bIsAICharacterLocked) // If not already unlocked
 	{
 		bIsAICharacterLocked = false;
+
+		// Update NPCInteractionWidget (GUI)
+		if (NPCInteractionWidget != nullptr)
+			NPCInteractionWidget->SetIsLocked(false);
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Unable to update NPCInteractionWidget!"));
 	}
 }
 
@@ -217,8 +243,31 @@ void APlayerCharacter::HandleInteraction(bool bDebug = false)
 	LockableAICharacter = Cast<AAICharacter>(LockableActor);
 	if (LockableAICharacter == nullptr && bIsAICharacterLocked) UnlockCharacter();
 
-	// if (bDebug && LockableAICharacter != nullptr) // DEBUG: lockable actor name+score log
-	// 	UE_LOG(LogTemp, Warning, TEXT("[Lockable] %s (%f)"), *LockableAICharacter->CharacterName, LockableActorScore);
+	// Update NPCInteractionWidget (GUI)
+	if (NPCInteractionWidget != nullptr)
+	{
+		bool bCanLock = LockableAICharacter != nullptr;
+		NPCInteractionWidget->SetCanLock(bCanLock);
+		if (bCanLock)
+			NPCInteractionWidget->SetName(LockableAICharacter->CharacterName);
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Unable to update NPCInteractionWidget!"));
+
+	if (bDebug && LockableAICharacter != nullptr) // DEBUG: lockable actor name+score log
+		UE_LOG(LogTemp, Warning, TEXT("[Lockable] %s (%f)"), *LockableAICharacter->CharacterName, LockableActorScore);
+}
+
+void APlayerCharacter::CheckInputType(FKey Key)
+{
+	// Update NPCInteractionWidget input type
+	if (NPCInteractionWidget != nullptr)
+	{
+		bool bIsGamepad = !Key.IsMouseButton() && Key.IsGamepadKey();
+		NPCInteractionWidget->SetInputType(bIsGamepad);
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Unable to set NPCInteractionWidget input type!"));
 }
 
 // Called every frame
