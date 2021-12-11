@@ -91,6 +91,18 @@ protected:
 	/** Called when lock key is released and when lockable character changes */
 	void UnlockCharacter();
 
+	/** Called when Antagonize is pressed */ 
+	void Antagonize();
+
+	/** Called when Defuse is pressed */ 
+	void Defuse();
+
+	/** Called when Rob is pressed */ 
+	void Rob();
+
+	/** Called when Attack is pressed */ 
+	void Attack();
+
 	/** Called when Run is pressed */
 	void Run();
 

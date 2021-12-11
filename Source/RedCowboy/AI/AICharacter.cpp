@@ -2,7 +2,6 @@
 
 
 #include "AICharacter.h"
-#include "AIModule/Classes/Perception/PawnSensingComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"

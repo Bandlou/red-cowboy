@@ -138,6 +138,59 @@ void APlayerCharacter::UnlockCharacter()
 	}
 }
 
+void APlayerCharacter::Antagonize()
+{
+	if (bIsAICharacterLocked)
+	{
+		if (LockableAICharacter != nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Antagonize"));
+			LockableAICharacter->GetController();
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Cannot antagonize locked character: not found!"));
+	}
+}
+
+void APlayerCharacter::Defuse()
+{
+	if (bIsAICharacterLocked)
+	{
+		if (LockableAICharacter != nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Defuse"));
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Cannot defuse locked character: not found!"));
+	}
+}
+
+void APlayerCharacter::Rob()
+{
+	if (bIsAICharacterLocked)
+	{
+		if (LockableAICharacter != nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Rob"));
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Cannot rob locked character: not found!"));
+	}
+}
+
+void APlayerCharacter::Attack()
+{
+	if (bIsAICharacterLocked)
+	{
+		if (LockableAICharacter != nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Attack"));
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Cannot attack locked character: not found!"));
+	}
+}
+
 void APlayerCharacter::Run()
 {
 	if (bCanRun)
@@ -259,13 +312,13 @@ void APlayerCharacter::HandleInteraction(bool bDebug = false)
 		else
 		{
 			RotateActor(0); // desired yaw is computed in RotateActor, TODO: restructure
-			
+
 			if (bDebug) // DEBUG: locked actor to player line
-				{
+			{
 				const FColor DebugLineColor = Distance <= MaxLockDistance ? FColor::Green : FColor::Yellow;
 				DrawDebugLine(GetWorld(), LockableAICharacter->GetActorLocation(), GetActorLocation(),
-							  DebugLineColor, false, -1, 0, 2);
-				}
+				              DebugLineColor, false, -1, 0, 2);
+			}
 		}
 	}
 
@@ -359,6 +412,11 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
+	PlayerInputComponent->BindAction("Antagonize", IE_Pressed, this, &APlayerCharacter::Antagonize);
+	PlayerInputComponent->BindAction("Defuse", IE_Pressed, this, &APlayerCharacter::Defuse);
+	PlayerInputComponent->BindAction("Rob", IE_Pressed, this, &APlayerCharacter::Rob);
+	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &APlayerCharacter::Attack);
+
 	PlayerInputComponent->BindAction("Lock", IE_Pressed, this, &APlayerCharacter::LockCharacter);
 	PlayerInputComponent->BindAction("Lock", IE_Released, this, &APlayerCharacter::UnlockCharacter);
 
