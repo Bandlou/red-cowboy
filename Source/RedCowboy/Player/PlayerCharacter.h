@@ -41,6 +41,9 @@ public:
 	float MaxInteractionAngle;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
+	float MaxLockDistance;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
 	float MaxInteractionDistance;
 
 	/** Exposes NPCInteraction BP class */
@@ -58,13 +61,21 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Movement)
 	float MaxWalkingSpeed;
 
-	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
-	float BaseTurnRate;
+	/** Actor base turn rate, in deg/sec. Other scaling may affect final turn rate. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Movement)
+	float ActorBaseTurnRate;
 
-	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
+	/** Actor turn threshold, in deg. Used to prevent small values from rotating. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Movement)
+	float ActorTurnThreshold;
+
+	/** Camera base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
-	float BaseLookUpRate;
+	float CameraBaseTurnRate;
+
+	/** Camera base look up/down rate, in deg/sec. Other scaling may affect final rate. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
+	float CameraBaseLookUpRate;
 
 protected:
 	/** Called at start	*/
@@ -87,6 +98,9 @@ protected:
 
 	/** Called for side to side input */
 	void MoveRight(float Value);
+
+	/** Called to apply a rotation to the actor */
+	void RotateActor(float DesiredYawRotation);
 
 	/** 
 	 * Called via input to turn at a given rate. 

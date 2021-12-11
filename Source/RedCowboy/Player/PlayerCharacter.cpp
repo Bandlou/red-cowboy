@@ -28,15 +28,18 @@ APlayerCharacter::APlayerCharacter()
 	// set interaction variables
 	LockableAICharacter = nullptr;
 	MaxInteractionAngle = 70.f;
-	MaxInteractionDistance = 500.f;
+	MaxLockDistance = 500.f;
+	MaxInteractionDistance = 1000.f;
 
 	// set our turn rates for input
-	BaseTurnRate = 45.f;
-	BaseLookUpRate = 45.f;
+	CameraBaseTurnRate = 45.f;
+	CameraBaseLookUpRate = 45.f;
 
-	// set movement speeds
+	// set movement variables
 	MaxRunningSpeed = 375;
 	MaxWalkingSpeed = 150;
+	ActorBaseTurnRate = 270.f;
+	ActorTurnThreshold = 10.f;
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
@@ -69,7 +72,7 @@ APlayerCharacter::APlayerCharacter()
 
 	// Create a detection sphere
 	DetectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DetectionSphere"));
-	DetectionSphere->InitSphereRadius(1000);
+	DetectionSphere->InitSphereRadius(MaxInteractionDistance);
 
 	// Find the Widget and assigned to NPCInteractionBPClass
 	static ConstructorHelpers::FClassFinder<UUserWidget> NPCInteractionWbpClass(
@@ -146,12 +149,14 @@ void APlayerCharacter::MoveForward(float Value)
 	if ((Controller != nullptr) && (Value != 0.0f))
 	{
 		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
+		const FRotator ControllerYawRotation(0, Controller->GetControlRotation().Yaw, 0);
 		// get forward vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector Direction = FRotationMatrix(ControllerYawRotation).GetUnitAxis(EAxis::X);
+
+		// add movement in that direction
 		AddMovementInput(Direction, Value);
+		// rotate towards controller rotation
+		RotateActor(ControllerYawRotation.Yaw + (Value > 0 ? 0 : 180));
 	}
 }
 
@@ -160,26 +165,49 @@ void APlayerCharacter::MoveRight(float Value)
 	if ((Controller != nullptr) && (Value != 0.0f))
 	{
 		// find out which way is right
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
+		const FRotator ControllerYawRotation(0, Controller->GetControlRotation().Yaw, 0);
 		// get right vector 
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		const FVector Direction = FRotationMatrix(ControllerYawRotation).GetUnitAxis(EAxis::Y);
+
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
+		// rotate towards controller rotation
+		RotateActor(ControllerYawRotation.Yaw + (Value > 0 ? 90 : -90));
+	}
+}
+
+void APlayerCharacter::RotateActor(float DesiredYawRotation)
+{
+	if (!bIsAICharacterLocked)
+	{
+		const float ActorYawRotation = GetActorRotation().Yaw;
+		const float DesiredYawDelta = fmod((DesiredYawRotation - ActorYawRotation) + 180.f, 360.f) - 180.f;
+
+		// prevent small values from rotating
+		if (abs(DesiredYawDelta) >= ActorTurnThreshold)
+		{
+			// maximal yaw rotation
+			const float MaxYawDelta = ActorBaseTurnRate * GetWorld()->GetDeltaSeconds();
+			// final yaw rotation added to actor
+			const float YawDelta = abs(DesiredYawDelta) < MaxYawDelta
+				                       ? DesiredYawDelta
+				                       : (DesiredYawDelta > 0 ? MaxYawDelta : -MaxYawDelta);
+
+			AddActorLocalRotation(FRotator(0, YawDelta, 0));
+		}
 	}
 }
 
 void APlayerCharacter::TurnAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
-	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+	AddControllerYawInput(Rate * CameraBaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
 void APlayerCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
-	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+	AddControllerPitchInput(Rate * CameraBaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
 void APlayerCharacter::HandleInteraction(bool bDebug = false)
@@ -191,71 +219,97 @@ void APlayerCharacter::HandleInteraction(bool bDebug = false)
 	{
 		DrawDebugSphere(GetWorld(), GetActorLocation(), DetectionSphere->GetScaledSphereRadius(),
 		                50, FColor::Orange, false, -1, 0, 0);
-		DrawDebugSphere(GetWorld(), GetActorLocation(), MaxInteractionDistance,
+		DrawDebugSphere(GetWorld(), GetActorLocation(), MaxLockDistance,
 		                50, FColor::Yellow, false, -1, 0, 0);
 	}
 
 	const FVector PlayerForward = GetActorForwardVector();
 	const FVector PlayerLocation = GetActorLocation();
-	AActor* LockableActor = nullptr;
-	float LockableActorScore = 0;
-	for (const auto Actor : OverlappingActors)
+
+	// Check if locked char is still valid
+	if (LockableAICharacter != nullptr && bIsAICharacterLocked)
 	{
-		if (Actor != this)
+		const FVector PlayerToActor = LockableAICharacter->GetActorLocation() - PlayerLocation;
+		const float Angle = FMath::RadiansToDegrees(
+			acosf(
+				FVector::DotProduct(PlayerForward, PlayerToActor) /
+				(PlayerForward.Size() * PlayerToActor.Size())
+			));
+		const float Distance = PlayerToActor.Size();
+
+		// If no more valid => unlock
+		if (Angle > MaxInteractionAngle || Distance > MaxInteractionDistance)
+			UnlockCharacter();
+		else if (bDebug) // DEBUG: locked actor to player line
 		{
-			FVector PlayerToActor = Actor->GetActorLocation() - PlayerLocation;
-			const float Angle = FMath::RadiansToDegrees(
-				acosf(
-					FVector::DotProduct(PlayerForward, PlayerToActor) /
-					(PlayerForward.Size() * PlayerToActor.Size())
-				));
-			const float Distance = PlayerToActor.Size();
-
-			FColor DebugLineColor;
-
-			// Only lockable if within max interaction angle & distance
-			if (Angle <= MaxInteractionAngle && Distance <= MaxInteractionDistance)
-			{
-				const float DistanceScore = 1 - (Distance / MaxInteractionDistance); // € [0;1]
-				const float AngleScore = 1 - (Angle / MaxInteractionAngle); // € [0;1]
-				const float TotalScore = 2.f * AngleScore + DistanceScore;
-
-				if (TotalScore > LockableActorScore)
-				{
-					LockableActorScore = TotalScore;
-					LockableActor = Actor;
-				}
-
-				DebugLineColor = FColor::Green;
-			}
-			else if (Angle <= MaxInteractionAngle)
-				DebugLineColor = FColor::Yellow;
-			else
-				DebugLineColor = FColor::Orange;
-
-			if (bDebug) // DEBUG: non-lockable actor to player line
-				DrawDebugLine(GetWorld(), Actor->GetActorLocation(), GetActorLocation(),
-				              DebugLineColor, false, -1, 0, 2);
+			const FColor DebugLineColor = Distance <= MaxLockDistance ? FColor::Green : FColor::Yellow;
+			DrawDebugLine(GetWorld(), LockableAICharacter->GetActorLocation(), GetActorLocation(),
+			              DebugLineColor, false, -1, 0, 2);
 		}
 	}
 
-	// Update lockable character and unlock previous one if necessary
-	LockableAICharacter = Cast<AAICharacter>(LockableActor);
-	if (LockableAICharacter == nullptr && bIsAICharacterLocked) UnlockCharacter();
-
-	// Update NPCInteractionWidget (GUI)
-	if (NPCInteractionWidget != nullptr)
+	// Find the best lockable character
+	if (!bIsAICharacterLocked)
 	{
-		bool bCanLock = LockableAICharacter != nullptr;
-		NPCInteractionWidget->SetCanLock(bCanLock);
-		if (bCanLock)
-			NPCInteractionWidget->SetName(LockableAICharacter->CharacterName);
-	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("Unable to update NPCInteractionWidget!"));
+		AActor* LockableActor = nullptr;
+		float LockableActorScore = 0;
+		for (const auto Actor : OverlappingActors)
+		{
+			if (Actor != this)
+			{
+				FVector PlayerToActor = Actor->GetActorLocation() - PlayerLocation;
+				const float Angle = FMath::RadiansToDegrees(
+					acosf(
+						FVector::DotProduct(PlayerForward, PlayerToActor) /
+						(PlayerForward.Size() * PlayerToActor.Size())
+					));
+				const float Distance = PlayerToActor.Size();
 
-	if (bDebug && LockableAICharacter != nullptr) // DEBUG: lockable actor name+score log
-		UE_LOG(LogTemp, Warning, TEXT("[Lockable] %s (%f)"), *LockableAICharacter->CharacterName, LockableActorScore);
+				FColor DebugLineColor;
+
+				// Only lockable if within max interaction angle & distance
+				if (Angle <= MaxInteractionAngle && Distance <= MaxLockDistance)
+				{
+					const float DistanceScore = 1 - (Distance / MaxLockDistance); // € [0;1]
+					const float AngleScore = 1 - (Angle / MaxInteractionAngle); // € [0;1]
+					const float TotalScore = 2.f * AngleScore + DistanceScore;
+
+					if (TotalScore > LockableActorScore)
+					{
+						LockableActorScore = TotalScore;
+						LockableActor = Actor;
+					}
+
+					DebugLineColor = FColor::Green;
+				}
+				else if (Angle <= MaxInteractionAngle)
+					DebugLineColor = FColor::Yellow;
+				else
+					DebugLineColor = FColor::Orange;
+
+				if (bDebug) // DEBUG: non-lockable actor to player line
+					DrawDebugLine(GetWorld(), Actor->GetActorLocation(), GetActorLocation(),
+					              DebugLineColor, false, -1, 0, 2);
+			}
+		}
+
+		// Update lockable character
+		LockableAICharacter = Cast<AAICharacter>(LockableActor);
+
+		// Update NPCInteractionWidget (GUI)
+		if (NPCInteractionWidget != nullptr)
+		{
+			bool bCanLock = LockableAICharacter != nullptr;
+			NPCInteractionWidget->SetCanLock(bCanLock);
+			if (bCanLock)
+				NPCInteractionWidget->SetName(LockableAICharacter->CharacterName);
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Unable to update NPCInteractionWidget!"));
+
+		if (bDebug && LockableAICharacter != nullptr) // DEBUG: lockable actor name+score log
+			UE_LOG(LogTemp, Warning, TEXT("[Lockable] %s (%f)"), *LockableAICharacter->CharacterName, LockableActorScore);
+	}
 }
 
 void APlayerCharacter::CheckInputType(FKey Key)
