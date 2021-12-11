@@ -38,6 +38,7 @@ APlayerCharacter::APlayerCharacter()
 	// set movement variables
 	MaxRunningSpeed = 375;
 	MaxWalkingSpeed = 150;
+	bCanRun = true;
 	ActorBaseTurnRate = 270.f;
 	ActorTurnThreshold = 10.f;
 
@@ -111,6 +112,8 @@ void APlayerCharacter::LockCharacter(FKey Key)
 	if (LockableAICharacter != nullptr)
 	{
 		bIsAICharacterLocked = true;
+		bCanRun = false;
+		StopRunning();
 
 		// Update NPCInteractionWidget (GUI)
 		if (NPCInteractionWidget != nullptr)
@@ -125,6 +128,7 @@ void APlayerCharacter::UnlockCharacter()
 	if (bIsAICharacterLocked) // If not already unlocked
 	{
 		bIsAICharacterLocked = false;
+		bCanRun = true;
 
 		// Update NPCInteractionWidget (GUI)
 		if (NPCInteractionWidget != nullptr)
@@ -136,7 +140,8 @@ void APlayerCharacter::UnlockCharacter()
 
 void APlayerCharacter::Run()
 {
-	GetCharacterMovement()->MaxWalkSpeed = MaxRunningSpeed;
+	if (bCanRun)
+		GetCharacterMovement()->MaxWalkSpeed = MaxRunningSpeed;
 }
 
 void APlayerCharacter::StopRunning()
@@ -178,23 +183,38 @@ void APlayerCharacter::MoveRight(float Value)
 
 void APlayerCharacter::RotateActor(float DesiredYawRotation)
 {
-	if (!bIsAICharacterLocked)
+	if (bIsAICharacterLocked)
 	{
-		const float ActorYawRotation = GetActorRotation().Yaw;
-		const float DesiredYawDelta = fmod((DesiredYawRotation - ActorYawRotation) + 180.f, 360.f) - 180.f;
-
-		// prevent small values from rotating
-		if (abs(DesiredYawDelta) >= ActorTurnThreshold)
+		if (LockableAICharacter != nullptr)
 		{
-			// maximal yaw rotation
-			const float MaxYawDelta = ActorBaseTurnRate * GetWorld()->GetDeltaSeconds();
-			// final yaw rotation added to actor
-			const float YawDelta = abs(DesiredYawDelta) < MaxYawDelta
-				                       ? DesiredYawDelta
-				                       : (DesiredYawDelta > 0 ? MaxYawDelta : -MaxYawDelta);
+			const FVector PlayerLocation = GetActorLocation();
+			FVector PlayerToActor = LockableAICharacter->GetActorLocation() - PlayerLocation;
 
-			AddActorLocalRotation(FRotator(0, YawDelta, 0));
+			// Extract yaw from vector and convert to degrees
+			PlayerToActor.Normalize();
+			DesiredYawRotation = FMath::RadiansToDegrees(atan2(PlayerToActor.Y, PlayerToActor.X));
 		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Cannot rotate towards locked character: not found!"));
+			return;
+		}
+	}
+
+	const float ActorYawRotation = GetActorRotation().Yaw;
+	const float DesiredYawDelta = fmod((DesiredYawRotation - ActorYawRotation) + 180.f, 360.f) - 180.f;
+
+	// prevent small values from rotating
+	if (abs(DesiredYawDelta) >= ActorTurnThreshold)
+	{
+		// maximal yaw rotation
+		const float MaxYawDelta = ActorBaseTurnRate * GetWorld()->GetDeltaSeconds();
+		// final yaw rotation added to actor
+		const float YawDelta = abs(DesiredYawDelta) < MaxYawDelta
+			                       ? DesiredYawDelta
+			                       : (DesiredYawDelta > 0 ? MaxYawDelta : -MaxYawDelta);
+
+		AddActorLocalRotation(FRotator(0, YawDelta, 0));
 	}
 }
 
@@ -230,21 +250,22 @@ void APlayerCharacter::HandleInteraction(bool bDebug = false)
 	if (LockableAICharacter != nullptr && bIsAICharacterLocked)
 	{
 		const FVector PlayerToActor = LockableAICharacter->GetActorLocation() - PlayerLocation;
-		const float Angle = FMath::RadiansToDegrees(
-			acosf(
-				FVector::DotProduct(PlayerForward, PlayerToActor) /
-				(PlayerForward.Size() * PlayerToActor.Size())
-			));
+		const float Angle = GetAngle(PlayerForward, PlayerToActor);
 		const float Distance = PlayerToActor.Size();
 
 		// If no more valid => unlock
 		if (Angle > MaxInteractionAngle || Distance > MaxInteractionDistance)
 			UnlockCharacter();
-		else if (bDebug) // DEBUG: locked actor to player line
+		else
 		{
-			const FColor DebugLineColor = Distance <= MaxLockDistance ? FColor::Green : FColor::Yellow;
-			DrawDebugLine(GetWorld(), LockableAICharacter->GetActorLocation(), GetActorLocation(),
-			              DebugLineColor, false, -1, 0, 2);
+			RotateActor(0); // desired yaw is computed in RotateActor, TODO: restructure
+			
+			if (bDebug) // DEBUG: locked actor to player line
+				{
+				const FColor DebugLineColor = Distance <= MaxLockDistance ? FColor::Green : FColor::Yellow;
+				DrawDebugLine(GetWorld(), LockableAICharacter->GetActorLocation(), GetActorLocation(),
+							  DebugLineColor, false, -1, 0, 2);
+				}
 		}
 	}
 
@@ -258,11 +279,7 @@ void APlayerCharacter::HandleInteraction(bool bDebug = false)
 			if (Actor != this)
 			{
 				FVector PlayerToActor = Actor->GetActorLocation() - PlayerLocation;
-				const float Angle = FMath::RadiansToDegrees(
-					acosf(
-						FVector::DotProduct(PlayerForward, PlayerToActor) /
-						(PlayerForward.Size() * PlayerToActor.Size())
-					));
+				const float Angle = GetAngle(PlayerForward, PlayerToActor);
 				const float Distance = PlayerToActor.Size();
 
 				FColor DebugLineColor;
@@ -306,9 +323,6 @@ void APlayerCharacter::HandleInteraction(bool bDebug = false)
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Unable to update NPCInteractionWidget!"));
-
-		if (bDebug && LockableAICharacter != nullptr) // DEBUG: lockable actor name+score log
-			UE_LOG(LogTemp, Warning, TEXT("[Lockable] %s (%f)"), *LockableAICharacter->CharacterName, LockableActorScore);
 	}
 }
 
@@ -324,12 +338,18 @@ void APlayerCharacter::CheckInputType(FKey Key)
 		UE_LOG(LogTemp, Warning, TEXT("Unable to set NPCInteractionWidget input type!"));
 }
 
+float APlayerCharacter::GetAngle(FVector A, FVector B)
+{
+	const float RadAngle = acosf(FVector::DotProduct(A, B) / (A.Size() * B.Size()));
+	return FMath::RadiansToDegrees(RadAngle);
+}
+
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	HandleInteraction(true);
+	HandleInteraction();
 }
 
 // Called to bind functionality to input

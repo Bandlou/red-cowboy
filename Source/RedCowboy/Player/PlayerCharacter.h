@@ -61,6 +61,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Movement)
 	float MaxWalkingSpeed;
 
+	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Movement)
+	bool bCanRun;
+
 	/** Actor base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Movement)
 	float ActorBaseTurnRate;
@@ -124,6 +128,11 @@ protected:
 	 * Called via input actions to enable dynamic GUI switch
 	 */
 	void CheckInputType(FKey Key);
+
+	/**
+	 * Util function to measure angle
+	 */
+	static float GetAngle(FVector A, FVector B);
 
 public:
 	// Called every frame
