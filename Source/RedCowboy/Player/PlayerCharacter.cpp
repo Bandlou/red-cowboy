@@ -27,7 +27,7 @@ APlayerCharacter::APlayerCharacter()
 
 	// set interaction variables
 	LockableAICharacter = nullptr;
-	MaxInteractionAngle = 70.f;
+	MaxInteractionAngle = 90.f;
 	MaxLockDistance = 500.f;
 	MaxInteractionDistance = 1000.f;
 
@@ -272,7 +272,7 @@ void APlayerCharacter::HandleInteraction(bool bDebug = false)
 				{
 					const float DistanceScore = 1 - (Distance / MaxLockDistance); // € [0;1]
 					const float AngleScore = 1 - (Angle / MaxInteractionAngle); // € [0;1]
-					const float TotalScore = 2.f * AngleScore + DistanceScore;
+					const float TotalScore = 1.5f * AngleScore + DistanceScore;
 
 					if (TotalScore > LockableActorScore)
 					{
