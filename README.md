@@ -31,6 +31,8 @@ A 4-day project to try to implement some basic RDR2 gameplay features.
 - Update NPC lock system:
   - Look for new candidates only if not already locked
   - Give locked character more distance before being unlocked
+  - Increase maximal angle for valid lock
+  - Update score function
 - Add a NPC interaction system:
     - If a NPC is locked
     - (WIP)
