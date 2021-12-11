@@ -20,11 +20,11 @@ A 4-day project to try to implement some basic RDR2 gameplay features.
     - Select valid NPCs around the player (valid angle & distance)
     - Give the selected NPCs a score based on angle & distance
     - Select the NPC with the highest score
-    - Update the GUI to signal a NPC is lockable (WIP: day 3)
+    - Update the GUI to signal a NPC is lockable (*Day 3*)
   - Lock:
     - If not already locked and if there is a lockable NPC
     - Lock the NPC
-    - Update the GUI to signal a NPC is locked and display available interactions (WIP: day 3)
+    - Update the GUI to signal a NPC is locked and display available interactions (*Day 3*)
 
 ## [2021/12/11] Day 3: Planning to...
 - Add a NPC interaction system:
