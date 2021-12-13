@@ -46,6 +46,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
 	float MaxInteractionDistance;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
+	bool bIsAttacking;
+
 	/** Exposes NPCInteraction BP class */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TSubclassOf<class UUserWidget> NPCInteractionClass;

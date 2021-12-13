@@ -31,6 +31,7 @@ APlayerCharacter::APlayerCharacter()
 	MaxInteractionAngle = 90.f;
 	MaxLockDistance = 500.f;
 	MaxInteractionDistance = 1000.f;
+	bIsAttacking = false;
 
 	// set our turn rates for input
 	CameraBaseTurnRate = 45.f;
@@ -137,7 +138,8 @@ void APlayerCharacter::UnlockCharacter()
 		// }
 		// else
 		// 	UE_LOG(LogTemp, Warning, TEXT("Unable to access interacting NPC controller!"));
-		
+
+		bIsAttacking = false;
 		bIsAICharacterLocked = false;
 		bCanRun = true;
 		GetCharacterMovement()->bOrientRotationToMovement = true; // enable automatic orientation
@@ -156,9 +158,7 @@ void APlayerCharacter::Antagonize()
 	{
 		if (LockableAICharacter != nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Antagonize"));
-			ARoamController* LockableAICharacterController = Cast<ARoamController>(LockableAICharacter->GetController());
-			LockableAICharacterController->SetInteractingActor(this);
+			UE_LOG(LogTemp, Warning, TEXT("Antagonize: WIP"));
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Cannot antagonize locked character: not found!"));
@@ -171,7 +171,11 @@ void APlayerCharacter::Defuse()
 	{
 		if (LockableAICharacter != nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Defuse"));
+			UE_LOG(LogTemp, Warning, TEXT("Defuse")); // TODO: print subtitles
+
+			ARoamController* LockableAICharacterController = Cast<
+				ARoamController>(LockableAICharacter->GetController());
+			LockableAICharacterController->SetInteractingActor(this);
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Cannot defuse locked character: not found!"));
@@ -184,7 +188,7 @@ void APlayerCharacter::Rob()
 	{
 		if (LockableAICharacter != nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Rob"));
+			UE_LOG(LogTemp, Warning, TEXT("Rob: WIP"));
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Cannot rob locked character: not found!"));
@@ -197,7 +201,12 @@ void APlayerCharacter::Attack()
 	{
 		if (LockableAICharacter != nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Attack"));
+			UE_LOG(LogTemp, Warning, TEXT("Attack")); // TODO: print subtitles
+			bIsAttacking = true;
+
+			ARoamController* LockableAICharacterController = Cast<
+				ARoamController>(LockableAICharacter->GetController());
+			LockableAICharacterController->SetInteractingActor(this);
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Cannot attack locked character: not found!"));
@@ -217,7 +226,7 @@ void APlayerCharacter::StopRunning()
 
 void APlayerCharacter::MoveForward(float Value)
 {
-	if ((Controller != nullptr) && (Value != 0.0f))
+	if (Controller != nullptr && Value != 0.0f && !bIsAttacking)
 	{
 		// find out which way is forward
 		const FRotator ControllerYawRotation(0, Controller->GetControlRotation().Yaw, 0);
@@ -233,7 +242,7 @@ void APlayerCharacter::MoveForward(float Value)
 
 void APlayerCharacter::MoveRight(float Value)
 {
-	if ((Controller != nullptr) && (Value != 0.0f))
+	if (Controller != nullptr && Value != 0.0f && !bIsAttacking)
 	{
 		// find out which way is right
 		const FRotator ControllerYawRotation(0, Controller->GetControlRotation().Yaw, 0);
