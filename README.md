@@ -4,7 +4,13 @@
 
 A 4-day project to try to implement some basic RDR2 gameplay features.
 
-## [2021/12/09] Day 1
+## Showcase
+![Demo](ReadmeAssets/Demo.gif)
+![Debug](ReadmeAssets/Debug.gif)
+![AI](ReadmeAssets/AI.gif)
+
+## Project timeline
+### Day 1
 - Setup blank project
 - Recreated the third person template with an interest on the following features:
   - Character class, controller, 3D model, materials, animations, animation tree
@@ -13,7 +19,7 @@ A 4-day project to try to implement some basic RDR2 gameplay features.
 - Add a navmesh to the map and a simple roam behavior for the AI controlled NPCs
 - Add a pawn sensing component to the NPC character
 
-## [2021/12/10] Day 2
+### Day 2
 - Add the dectection of actors around player
 - Add an NPC lock system:
   - Detection:
@@ -26,7 +32,7 @@ A 4-day project to try to implement some basic RDR2 gameplay features.
     - Lock the NPC
     - (*Day 3*) Update the GUI to signal a NPC is locked and display available interactions
 
-## [2021/12/11] Day 3
+### Day 3
 - Add custom actor rotation system
 - Update NPC lock system:
   - Look for new candidates only if not already locked
@@ -37,7 +43,7 @@ A 4-day project to try to implement some basic RDR2 gameplay features.
 - Update AI roam controller:
   - Transition from Blueprint to C++ class
 
-## [2021/12/13] Day 4
+### Day 4
 - Improve character rotation system
 - Add a NPC interaction system:
   - Greet: the AI stops roaming, faces the player, waits a moment, goes back to normal
