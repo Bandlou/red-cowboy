@@ -1,8 +1,9 @@
 # Red Cowboy
 - Game engine: __Unreal (v5.0)__
 - Contribution: __Louis BANDELIER__
+- Keywords: __lock system__, __animation tree__, __behavior tree__
 
-A 4-day project to try to implement some basic RDR2 gameplay features.
+A 4-day project to try to implement a RDR2 lock system on Unreal Engine 5.0. NPCs use a behavior tree to freely roam and react to the player's actions. The player can lock an NPC and interact with him.
 
 ## Showcase
 ![Demo](ReadmeAssets/Demo.gif)
