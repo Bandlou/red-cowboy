@@ -40,4 +40,5 @@ A 4-day project to try to implement some basic RDR2 gameplay features.
 ## [2021/12/13] Day 4
 - Improve character rotation system
 - Add a NPC interaction system:
-    - AI behavior: stop roaming, face the player, wait a moment, stop interacting
+  - Greet: the AI stops roaming, faces the player, waits a moment, goes back to normal
+  - Aim weapon: the AI stops what he does, run around for a moment, goes back to normal
