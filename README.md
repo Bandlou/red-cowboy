@@ -42,3 +42,4 @@ A 4-day project to try to implement some basic RDR2 gameplay features.
 - Add a NPC interaction system:
   - Greet: the AI stops roaming, faces the player, waits a moment, goes back to normal
   - Aim weapon: the AI stops what he does, run around until the player stops aiming at him
+- Add dialog system (+small lines for interaction)
