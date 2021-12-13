@@ -39,7 +39,11 @@ protected:
 
 public:
 	
-	/** Set the input controller type */
+	/** Set the interaction actor */
 	UFUNCTION(BlueprintCallable)
 	void SetInteractingActor(AActor* Actor);
+	
+	/** Set the threatening actor */
+	UFUNCTION(BlueprintCallable)
+	void SetThreateningActor(AActor* Actor);
 };

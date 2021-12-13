@@ -130,16 +130,15 @@ void APlayerCharacter::UnlockCharacter()
 {
 	if (bIsAICharacterLocked) // If not already unlocked
 	{
-		/** The AI must finish its interaction... */
-		// if (LockableAICharacter != nullptr)
-		// {
-		// 	ARoamController* LockableAICharacterController = Cast<ARoamController>(LockableAICharacter->GetController());
-		// 	LockableAICharacterController->SetInteractingActor(nullptr);
-		// }
-		// else
-		// 	UE_LOG(LogTemp, Warning, TEXT("Unable to access interacting NPC controller!"));
-
 		bIsAttacking = false;
+		if (LockableAICharacter != nullptr)
+		{
+			ARoamController* LockableAICharacterController = Cast<ARoamController>(LockableAICharacter->GetController());
+			LockableAICharacterController->SetThreateningActor(nullptr);
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Unable to access threated NPC controller!"));
+		
 		bIsAICharacterLocked = false;
 		bCanRun = true;
 		GetCharacterMovement()->bOrientRotationToMovement = true; // enable automatic orientation
@@ -167,7 +166,7 @@ void APlayerCharacter::Antagonize()
 
 void APlayerCharacter::Defuse()
 {
-	if (bIsAICharacterLocked)
+	if (bIsAICharacterLocked && !bIsAttacking) // cannot defuse while being a threat
 	{
 		if (LockableAICharacter != nullptr)
 		{
@@ -206,7 +205,7 @@ void APlayerCharacter::Attack()
 
 			ARoamController* LockableAICharacterController = Cast<
 				ARoamController>(LockableAICharacter->GetController());
-			LockableAICharacterController->SetInteractingActor(this);
+			LockableAICharacterController->SetThreateningActor(this);
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Cannot attack locked character: not found!"));

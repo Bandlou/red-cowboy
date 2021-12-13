@@ -59,3 +59,15 @@ void ARoamController::SetInteractingActor(AActor* Actor)
 		AIPawn->GetCharacterMovement()->bOrientRotationToMovement = Actor == nullptr; // switch automatic orientation
 	}
 }
+
+void ARoamController::SetThreateningActor(AActor* Actor)
+{
+	AAICharacter* AIPawn = Cast<AAICharacter>(GetPawn());
+	if (AIPawn != nullptr)
+	{
+		// Stop any interaction
+		SetInteractingActor(nullptr);
+		// Start the threat action
+		BBComponent->SetValueAsObject("ThreateningActor", Actor);
+	}
+}
