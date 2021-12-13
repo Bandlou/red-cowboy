@@ -448,7 +448,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	HandleInteraction(true);
+	HandleInteraction();
 
 	// Handle dialogs
 	if (DialogDisplayTimer > 0)
