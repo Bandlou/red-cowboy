@@ -15,12 +15,10 @@ class REDCOWBOY_API UNPCInteractionWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
 	bool bIsInputGamepad;
-	
-protected:
 
+protected:
 	/** Contains the whole interaction widget */
 	UPROPERTY(meta=(BindWidget))
 	class UVerticalBox* InteractionMenu;
@@ -89,10 +87,22 @@ protected:
 	UPROPERTY(meta=(BindWidget))
 	class UImage* AimSpritePS4;
 
+	/** Contains the dialog content...? */
+	UPROPERTY(meta=(BindWidget))
+	class UCanvasPanel* DialogMenu;
+
+	/** The name of the character speaking */
+	UPROPERTY(meta=(BindWidget))
+	class UTextBlock* SpeakerName;
+
+	/** What the character says */
+	UPROPERTY(meta=(BindWidget))
+	class UTextBlock* SpeakerPhrase;
+
 	virtual void NativeConstruct() override;
 
 public:
-
+	
 	/** Set the input controller type */
 	void SetInputType(bool bIsGamepad);
 
@@ -103,5 +113,11 @@ public:
 	void SetIsLocked(bool bIsLocked);
 
 	/** Set the interaction target name */
-	void SetName(FString Name);
+	void SetName(const FString& Name);
+
+	/** Display a dialog */
+	void SetDialog(const FString& Name, const FString& Phrase);
+
+	/** Stop displaying dialogs */
+	void StopDialog();
 };

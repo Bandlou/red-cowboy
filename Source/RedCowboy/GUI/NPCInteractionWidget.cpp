@@ -3,6 +3,7 @@
 
 #include "NPCInteractionWidget.h"
 
+#include "Components/CanvasPanel.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
@@ -17,6 +18,9 @@ void UNPCInteractionWidget::NativeConstruct()
 	FriendlyLabel->SetText(FText::FromString("Greet"));
 	RobLabel->SetText(FText::FromString("Rob"));
 	AimLabel->SetText(FText::FromString("Aim Weapon"));
+
+	// Dialog menu
+	StopDialog();
 }
 
 void UNPCInteractionWidget::SetInputType(bool bIsGamepad)
@@ -47,7 +51,19 @@ void UNPCInteractionWidget::SetIsLocked(bool bIsLocked)
 	ActionMenu->SetVisibility(bIsLocked ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 }
 
-void UNPCInteractionWidget::SetName(FString Name)
+void UNPCInteractionWidget::SetName(const FString& Name)
 {
 	LockLabel->SetText(FText::FromString(Name));
+}
+
+void UNPCInteractionWidget::SetDialog(const FString& Name, const FString& Phrase)
+{
+	SpeakerName->SetText(FText::FromString(Name));
+	SpeakerPhrase->SetText(FText::FromString(Phrase));
+	DialogMenu->SetVisibility((ESlateVisibility::Visible));
+}
+
+void UNPCInteractionWidget::StopDialog()
+{
+	DialogMenu->SetVisibility((ESlateVisibility::Hidden));
 }

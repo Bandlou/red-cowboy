@@ -49,6 +49,18 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
 	bool bIsAttacking;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
+	float DialogDisplayTimer;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
+	float DialogDisplayTime;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
+	FString DialogResponseName;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
+	FString DialogResponsePhrase;
+
 	/** Exposes NPCInteraction BP class */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TSubclassOf<class UUserWidget> NPCInteractionClass;

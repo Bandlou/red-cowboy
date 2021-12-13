@@ -32,6 +32,10 @@ APlayerCharacter::APlayerCharacter()
 	MaxLockDistance = 500.f;
 	MaxInteractionDistance = 1000.f;
 	bIsAttacking = false;
+	DialogDisplayTimer = 0.f;
+	DialogDisplayTime = 1.5f;
+	DialogResponseName = "";
+	DialogResponsePhrase = "";
 
 	// set our turn rates for input
 	CameraBaseTurnRate = 45.f;
@@ -133,12 +137,13 @@ void APlayerCharacter::UnlockCharacter()
 		bIsAttacking = false;
 		if (LockableAICharacter != nullptr)
 		{
-			ARoamController* LockableAICharacterController = Cast<ARoamController>(LockableAICharacter->GetController());
+			ARoamController* LockableAICharacterController = Cast<
+				ARoamController>(LockableAICharacter->GetController());
 			LockableAICharacterController->SetThreateningActor(nullptr);
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Unable to access threated NPC controller!"));
-		
+
 		bIsAICharacterLocked = false;
 		bCanRun = true;
 		GetCharacterMovement()->bOrientRotationToMovement = true; // enable automatic orientation
@@ -170,10 +175,29 @@ void APlayerCharacter::Defuse()
 	{
 		if (LockableAICharacter != nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Defuse")); // TODO: print subtitles
+			// Update NPCInteractionWidget (GUI)
+			if (NPCInteractionWidget != nullptr)
+			{
+				DialogResponseName = LockableAICharacter->CharacterName;
+				const FString Phrase = DialogResponseName == "Martha"
+					                       ? "Hello."
+					                       : DialogResponseName == "Micah"
+					                       ? "You are the creepiest man I know."
+					                       : "How you keeping?";
+				DialogResponsePhrase = DialogResponseName == "Martha"
+					                       ? "Hi, mister."
+					                       : DialogResponseName == "Micah"
+					                       ? "What are you talking about?"
+					                       : "Very well, thank you.";
 
-			ARoamController* LockableAICharacterController = Cast<
-				ARoamController>(LockableAICharacter->GetController());
+				NPCInteractionWidget->SetDialog("", Phrase);
+				DialogDisplayTimer = DialogDisplayTime;
+			}
+			else
+				UE_LOG(LogTemp, Warning, TEXT("Unable to update NPCInteractionWidget!"));
+
+			ARoamController* LockableAICharacterController = Cast<ARoamController>(
+				LockableAICharacter->GetController());
 			LockableAICharacterController->SetInteractingActor(this);
 		}
 		else
@@ -425,6 +449,30 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	HandleInteraction();
+
+	// Handle dialogs
+	if (DialogDisplayTimer > 0)
+	{
+		DialogDisplayTimer -= DeltaTime;
+
+		if (DialogDisplayTimer <= 0)
+		{
+			// Update NPCInteractionWidget (GUI)
+			if (NPCInteractionWidget != nullptr)
+			{
+				if (DialogResponsePhrase == "")
+					NPCInteractionWidget->StopDialog();
+				else
+				{
+					NPCInteractionWidget->SetDialog(DialogResponseName, DialogResponsePhrase);
+					DialogResponsePhrase = "";
+					DialogDisplayTimer = DialogDisplayTime;
+				}
+			}
+			else
+				UE_LOG(LogTemp, Warning, TEXT("Unable to update NPCInteractionWidget!"));
+		}
+	}
 }
 
 // Called to bind functionality to input
