@@ -129,13 +129,14 @@ void APlayerCharacter::UnlockCharacter()
 {
 	if (bIsAICharacterLocked) // If not already unlocked
 	{
-		if (LockableAICharacter != nullptr)
-		{
-			ARoamController* LockableAICharacterController = Cast<ARoamController>(LockableAICharacter->GetController());
-			LockableAICharacterController->SetInteractingActor(nullptr);
-		}
-		else
-			UE_LOG(LogTemp, Warning, TEXT("Unable to access interacting NPC controller!"));
+		/** The AI must finish its interaction... */
+		// if (LockableAICharacter != nullptr)
+		// {
+		// 	ARoamController* LockableAICharacterController = Cast<ARoamController>(LockableAICharacter->GetController());
+		// 	LockableAICharacterController->SetInteractingActor(nullptr);
+		// }
+		// else
+		// 	UE_LOG(LogTemp, Warning, TEXT("Unable to access interacting NPC controller!"));
 		
 		bIsAICharacterLocked = false;
 		bCanRun = true;

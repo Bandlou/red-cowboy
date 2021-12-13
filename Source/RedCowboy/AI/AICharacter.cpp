@@ -84,9 +84,6 @@ void AAICharacter::RotateActor(float DesiredYawRotation)
 			                       ? DesiredYawDelta
 			                       : (DesiredYawDelta > 0 ? MaxYawDelta : -MaxYawDelta);
 
-		UE_LOG(LogTemp, Warning, TEXT("DYR = %f, AYR = %f, DYD = %f"), DesiredYawRotation, ActorYawRotation,
-		       DesiredYawDelta);
-
 		AddActorLocalRotation(FRotator(0, YawDelta, 0));
 	}
 }
