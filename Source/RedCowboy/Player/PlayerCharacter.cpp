@@ -14,6 +14,7 @@
 #include "Components/SphereComponent.h"
 #include "Perception/AISense_Sight.h"
 #include "RedCowboy/AI/AICharacter.h"
+#include "RedCowboy/AI/RoamController.h"
 #include "RedCowboy/GUI/NPCInteractionWidget.h"
 
 // Sets default values
@@ -114,6 +115,7 @@ void APlayerCharacter::LockCharacter(FKey Key)
 		bIsAICharacterLocked = true;
 		bCanRun = false;
 		StopRunning();
+		GetCharacterMovement()->bOrientRotationToMovement = false; // stop automatic orientation
 
 		// Update NPCInteractionWidget (GUI)
 		if (NPCInteractionWidget != nullptr)
@@ -127,8 +129,17 @@ void APlayerCharacter::UnlockCharacter()
 {
 	if (bIsAICharacterLocked) // If not already unlocked
 	{
+		if (LockableAICharacter != nullptr)
+		{
+			ARoamController* LockableAICharacterController = Cast<ARoamController>(LockableAICharacter->GetController());
+			LockableAICharacterController->SetInteractingActor(nullptr);
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Unable to access interacting NPC controller!"));
+		
 		bIsAICharacterLocked = false;
 		bCanRun = true;
+		GetCharacterMovement()->bOrientRotationToMovement = true; // enable automatic orientation
 
 		// Update NPCInteractionWidget (GUI)
 		if (NPCInteractionWidget != nullptr)
@@ -145,7 +156,8 @@ void APlayerCharacter::Antagonize()
 		if (LockableAICharacter != nullptr)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Antagonize"));
-			LockableAICharacter->GetController();
+			ARoamController* LockableAICharacterController = Cast<ARoamController>(LockableAICharacter->GetController());
+			LockableAICharacterController->SetInteractingActor(this);
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Cannot antagonize locked character: not found!"));
@@ -213,8 +225,8 @@ void APlayerCharacter::MoveForward(float Value)
 
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
-		// rotate towards controller rotation
-		RotateActor(ControllerYawRotation.Yaw + (Value > 0 ? 0 : 180));
+		// rotate towards controller rotation => switching automatic orient via bOrientRotationToMovement instead
+		// RotateActor(ControllerYawRotation.Yaw + (Value > 0 ? 0 : 180));
 	}
 }
 
@@ -229,8 +241,8 @@ void APlayerCharacter::MoveRight(float Value)
 
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
-		// rotate towards controller rotation
-		RotateActor(ControllerYawRotation.Yaw + (Value > 0 ? 90 : -90));
+		// rotate towards controller rotation => switching automatic orient via bOrientRotationToMovement instead
+		// RotateActor(ControllerYawRotation.Yaw + (Value > 0 ? 90 : -90));
 	}
 }
 
@@ -246,6 +258,7 @@ void APlayerCharacter::RotateActor(float DesiredYawRotation)
 			// Extract yaw from vector and convert to degrees
 			PlayerToActor.Normalize();
 			DesiredYawRotation = FMath::RadiansToDegrees(atan2(PlayerToActor.Y, PlayerToActor.X));
+			DesiredYawRotation = fmod(DesiredYawRotation + 360.f, 360.f);
 		}
 		else
 		{

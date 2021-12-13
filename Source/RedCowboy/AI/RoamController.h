@@ -13,6 +13,13 @@ class REDCOWBOY_API ARoamController : public AAIController
 
 public:
 	ARoamController();
+	
+	/** Makes AI go toward specified destination
+		 *  @param MoveRequest - details about move
+		 *  @param OutPath - optional output param, filled in with assigned path
+		 *  @return struct holding MoveId and enum code
+		 */
+	// virtual FPathFollowingRequestResult MoveTo(const FAIMoveRequest& MoveRequest, FNavPathSharedPtr* OutPath) override;
 
 	/** BB component */
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category=AI)
@@ -26,5 +33,13 @@ public:
 	class UBehaviorTree* RoamBT;
 
 protected:
+	
+	/** When possessed pawn changed */
 	virtual void OnPossess(APawn* InPawn) override;
+
+public:
+	
+	/** Set the input controller type */
+	UFUNCTION(BlueprintCallable)
+	void SetInteractingActor(AActor* Actor);
 };

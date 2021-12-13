@@ -23,6 +23,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Interaction)
 	FString CharacterName;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interaction)
+	class AActor* InteractionTarget;
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Movement)
 	float MaxRunningSpeed;
@@ -30,6 +33,14 @@ public:
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Movement)
 	float MaxWalkingSpeed;
+
+	/** Actor base turn rate, in deg/sec. Other scaling may affect final turn rate. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Movement)
+	float ActorBaseTurnRate;
+
+	/** Actor turn threshold, in deg. Used to prevent small values from rotating. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Movement)
+	float ActorTurnThreshold;
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -57,6 +68,12 @@ protected:
 
 	/** Called for side to side input */
 	void MoveRight(float Value);
+
+	/** Called to apply a rotation to the actor */
+	void RotateActor(float DesiredYawRotation);
+
+	/** Called to face a target the actor */
+	void FaceActor(const AActor& Target);
 
 	/** 
 	 * Called via input to turn at a given rate. 

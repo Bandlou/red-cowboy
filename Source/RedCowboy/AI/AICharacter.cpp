@@ -4,7 +4,6 @@
 #include "AICharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/Controller.h"
 #include "RedCowboy/Player/PlayerCharacter.h"
 
 // Sets default values
@@ -18,14 +17,17 @@ AAICharacter::AAICharacter()
 
 	// set interaction variables
 	CharacterName = "Stranger";
+	InteractionTarget = nullptr;
 
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
 
-	// set movement speeds
-	MaxRunningSpeed = 375;
-	MaxWalkingSpeed = 150;
+	// set movement variables
+	MaxRunningSpeed = 375.f;
+	MaxWalkingSpeed = 150.f;
+	ActorBaseTurnRate = 270.f;
+	ActorTurnThreshold = 10.f;
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
@@ -67,33 +69,37 @@ void AAICharacter::StopRunning()
 	GetCharacterMovement()->MaxWalkSpeed = MaxWalkingSpeed;
 }
 
-void AAICharacter::MoveForward(float Value)
+void AAICharacter::RotateActor(float DesiredYawRotation)
 {
-	if ((Controller != nullptr) && (Value != 0.0f))
-	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+	const float ActorYawRotation = GetActorRotation().Yaw;
+	const float DesiredYawDelta = fmod((DesiredYawRotation - ActorYawRotation) + 180.f, 360.f) - 180.f;
 
-		// get forward vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(Direction, Value);
+	// prevent small values from rotating
+	if (abs(DesiredYawDelta) >= ActorTurnThreshold)
+	{
+		// maximal yaw rotation
+		const float MaxYawDelta = ActorBaseTurnRate * GetWorld()->GetDeltaSeconds();
+		// final yaw rotation added to actor
+		const float YawDelta = abs(DesiredYawDelta) < MaxYawDelta
+			                       ? DesiredYawDelta
+			                       : (DesiredYawDelta > 0 ? MaxYawDelta : -MaxYawDelta);
+
+		UE_LOG(LogTemp, Warning, TEXT("DYR = %f, AYR = %f, DYD = %f"), DesiredYawRotation, ActorYawRotation,
+		       DesiredYawDelta);
+
+		AddActorLocalRotation(FRotator(0, YawDelta, 0));
 	}
 }
 
-void AAICharacter::MoveRight(float Value)
+void AAICharacter::FaceActor(const AActor& Target)
 {
-	if ((Controller != nullptr) && (Value != 0.0f))
-	{
-		// find out which way is right
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+	const FVector PlayerLocation = GetActorLocation();
+	FVector PlayerToActor = Target.GetActorLocation() - PlayerLocation;
 
-		// get right vector 
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		// add movement in that direction
-		AddMovementInput(Direction, Value);
-	}
+	// Extract yaw from vector and convert to degrees
+	PlayerToActor.Normalize();
+	const float DesiredYawRotation = FMath::RadiansToDegrees(atan2(PlayerToActor.Y, PlayerToActor.X));
+	RotateActor(fmod(DesiredYawRotation + 360.f, 360.f));
 }
 
 void AAICharacter::TurnAtRate(float Rate)
@@ -123,4 +129,7 @@ void AAICharacter::LookUpAtRate(float Rate)
 void AAICharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (InteractionTarget != nullptr)
+		FaceActor(*InteractionTarget);
 }
