@@ -37,6 +37,7 @@ A 4-day project to try to implement some basic RDR2 gameplay features.
 - Update AI roam controller:
   - Transition from Blueprint to C++ class
 
-## [2021/12/13] Day 4: Planning to...
+## [2021/12/13] Day 4
+- Improve character rotation system
 - Add a NPC interaction system:
-    - If a NPC is locked
+    - AI behavior: stop roaming, face the player, wait a moment, stop interacting
