@@ -8,8 +8,8 @@ A 4-day project to try to implement a RDR2 lock system on Unreal Engine 5.0. NPC
 ## Showcase
 ![Demo showcase](ReadmeAssets/Demo.gif)
 
-- [Debug mode showcase](ReadmeAssets/Debug.gif)
-- [AI behavior tree showcase](ReadmeAssets/AI.gif)
+- [Debug mode showcase (GIF)](ReadmeAssets/Debug.gif)
+- [AI behavior tree showcase (GIF)](ReadmeAssets/AI.gif)
 
 ## Project timeline
 ### Day 1
