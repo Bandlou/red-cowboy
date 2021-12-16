@@ -6,9 +6,10 @@
 A 4-day project to try to implement a RDR2 lock system on Unreal Engine 5.0. NPCs use a behavior tree to freely roam and react to the player's actions. The player can lock an NPC and interact with him.
 
 ## Showcase
-![Demo](ReadmeAssets/Demo.gif)
-![Debug](ReadmeAssets/Debug.gif)
-![AI](ReadmeAssets/AI.gif)
+![Demo showcase](ReadmeAssets/Demo.gif)
+
+- [Debug mode showcase](ReadmeAssets/Debug.gif)
+- [AI behavior tree showcase](ReadmeAssets/AI.gif)
 
 ## Project timeline
 ### Day 1
